@@ -1,0 +1,438 @@
+import React, { useState } from 'react';
+import { Lock, BookOpen, FileText, Edit, Upload, X, Plus } from 'lucide-react';
+
+export default function AdminPanel() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('new-manga');
+  const [mangaList, setMangaList] = useState([
+    { id: 1, name: 'مانجا تجريبية 1', status: 'مستمرة' },
+    { id: 2, name: 'مانجا تجريبية 2', status: 'مكتملة' }
+  ]);
+
+  // نموذج إضافة مانجا جديدة
+  const [newManga, setNewManga] = useState({
+    name: '',
+    description: '',
+    cover: null,
+    categories: '',
+    status: 'مستمرة'
+  });
+
+  // نموذج إضافة فصل
+  const [newChapter, setNewChapter] = useState({
+    mangaId: '',
+    chapterNumber: '',
+    images: []
+  });
+
+  // نموذج تعديل مانجا
+  const [editManga, setEditManga] = useState({
+    mangaId: '',
+    name: '',
+    description: '',
+    cover: null,
+    categories: '',
+    status: 'مستمرة'
+  });
+
+  const handleLogin = () => {
+    if (password === 'keshav1@A23h23') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('الرمز السري غير صحيح');
+      setPassword('');
+    }
+  };
+
+  const handleNewMangaSubmit = () => {
+    if (!newManga.name || !newManga.description || !newManga.cover || !newManga.categories) {
+      alert('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+    alert('تم إضافة المانجا بنجاح!\n\nالبيانات المرسلة:\n' + JSON.stringify(newManga, null, 2));
+    setNewManga({
+      name: '',
+      description: '',
+      cover: null,
+      categories: '',
+      status: 'مستمرة'
+    });
+  };
+
+  const handleNewChapterSubmit = () => {
+    if (!newChapter.mangaId || !newChapter.chapterNumber || newChapter.images.length === 0) {
+      alert('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+    alert('تم رفع الفصل بنجاح!\n\nالبيانات المرسلة:\n' + JSON.stringify(newChapter, null, 2));
+    setNewChapter({
+      mangaId: '',
+      chapterNumber: '',
+      images: []
+    });
+  };
+
+  const handleEditMangaSubmit = () => {
+    if (!editManga.mangaId) {
+      alert('يرجى اختيار مانجا للتعديل');
+      return;
+    }
+    alert('تم تعديل المانجا بنجاح!\n\nالبيانات المرسلة:\n' + JSON.stringify(editManga, null, 2));
+  };
+
+  const handleFileChange = (e, type) => {
+    const files = Array.from(e.target.files);
+    if (type === 'cover') {
+      setNewManga({ ...newManga, cover: files[0] });
+    } else if (type === 'chapter-images') {
+      setNewChapter({ ...newChapter, images: files });
+    } else if (type === 'edit-cover') {
+      setEditManga({ ...editManga, cover: files[0] });
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
+        <div className="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-purple-500">
+          <div className="flex justify-center mb-6">
+            <div className="bg-purple-600 p-4 rounded-full">
+              <Lock className="w-12 h-12 text-white" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-center text-white mb-2">
+            لوحة التحكم الإدارية
+          </h1>
+          <p className="text-gray-400 text-center mb-6">
+            يرجى إدخال الرمز السري للوصول
+          </p>
+          <div>
+            <div className="mb-4">
+              <label className="block text-gray-300 mb-2 text-right">الرمز السري</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-right focus:outline-none focus:border-purple-500"
+                placeholder="أدخل الرمز السري"
+                dir="ltr"
+              />
+            </div>
+            {error && (
+              <div className="mb-4 p-3 bg-red-900 border border-red-700 rounded-lg text-red-200 text-right">
+                {error}
+              </div>
+            )}
+            <button
+              onClick={handleLogin}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition duration-200"
+            >
+              دخول
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4" dir="rtl">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-gray-800 rounded-lg shadow-2xl border border-purple-500 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+            <h1 className="text-3xl font-bold text-white text-center">
+              لوحة تحكم إدارة المانجا
+            </h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="bg-gray-700 border-b border-gray-600 flex">
+            <button
+              onClick={() => setActiveTab('new-manga')}
+              className={`flex-1 py-4 px-6 font-semibold transition ${
+                activeTab === 'new-manga'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <BookOpen className="inline-block ml-2" size={20} />
+              صفحة مانجا جديدة
+            </button>
+            <button
+              onClick={() => setActiveTab('new-chapter')}
+              className={`flex-1 py-4 px-6 font-semibold transition ${
+                activeTab === 'new-chapter'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <FileText className="inline-block ml-2" size={20} />
+              فصل جديد
+            </button>
+            <button
+              onClick={() => setActiveTab('edit-manga')}
+              className={`flex-1 py-4 px-6 font-semibold transition ${
+                activeTab === 'edit-manga'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <Edit className="inline-block ml-2" size={20} />
+              تعديل مانجا موجودة
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {/* صفحة مانجا جديدة */}
+            {activeTab === 'new-manga' && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">اسم المانجا</label>
+                  <input
+                    type="text"
+                    value={newManga.name}
+                    onChange={(e) => setNewManga({ ...newManga, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                    placeholder="أدخل اسم المانجا"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">الوصف</label>
+                  <textarea
+                    value={newManga.description}
+                    onChange={(e) => setNewManga({ ...newManga, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 min-h-32"
+                    placeholder="أدخل وصف المانجا"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">غلاف العمل</label>
+                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 transition cursor-pointer bg-gray-700">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, 'cover')}
+                      className="hidden"
+                      id="cover-upload"
+                    />
+                    <label htmlFor="cover-upload" className="cursor-pointer">
+                      <Upload className="mx-auto mb-2 text-gray-400" size={40} />
+                      <p className="text-gray-300">
+                        {newManga.cover ? newManga.cover.name : 'اضغط لرفع صورة الغلاف'}
+                      </p>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">التصنيفات</label>
+                  <input
+                    type="text"
+                    value={newManga.categories}
+                    onChange={(e) => setNewManga({ ...newManga, categories: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: أكشن, مغامرة, كوميدي (افصل بفاصلة)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">الحالة</label>
+                  <select
+                    value={newManga.status}
+                    onChange={(e) => setNewManga({ ...newManga, status: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="مستمرة">مستمرة</option>
+                    <option value="مكتملة">مكتملة</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleNewMangaSubmit}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition duration-200"
+                >
+                  <Plus className="inline-block ml-2" size={20} />
+                  إضافة المانجا
+                </button>
+              </div>
+            )}
+
+            {/* فصل جديد */}
+            {activeTab === 'new-chapter' && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">اختر المانجا</label>
+                  <select
+                    value={newChapter.mangaId}
+                    onChange={(e) => setNewChapter({ ...newChapter, mangaId: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">-- اختر المانجا --</option>
+                    {mangaList.map((manga) => (
+                      <option key={manga.id} value={manga.id}>
+                        {manga.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">رقم الفصل</label>
+                  <input
+                    type="number"
+                    value={newChapter.chapterNumber}
+                    onChange={(e) => setNewChapter({ ...newChapter, chapterNumber: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: 1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">صور الفصل</label>
+                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 transition cursor-pointer bg-gray-700">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleFileChange(e, 'chapter-images')}
+                      className="hidden"
+                      id="chapter-images-upload"
+                    />
+                    <label htmlFor="chapter-images-upload" className="cursor-pointer">
+                      <Upload className="mx-auto mb-2 text-gray-400" size={40} />
+                      <p className="text-gray-300">
+                        {newChapter.images.length > 0
+                          ? `تم اختيار ${newChapter.images.length} صورة`
+                          : 'اضغط لرفع صور الفصل (يمكن اختيار عدة صور)'}
+                      </p>
+                    </label>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleNewChapterSubmit}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition duration-200"
+                >
+                  <Upload className="inline-block ml-2" size={20} />
+                  رفع الفصل
+                </button>
+              </div>
+            )}
+
+            {/* تعديل مانجا موجودة */}
+            {activeTab === 'edit-manga' && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">اختر المانجا للتعديل</label>
+                  <select
+                    value={editManga.mangaId}
+                    onChange={(e) => {
+                      const manga = mangaList.find(m => m.id === parseInt(e.target.value));
+                      setEditManga({
+                        ...editManga,
+                        mangaId: e.target.value,
+                        name: manga?.name || '',
+                        status: manga?.status || 'مستمرة'
+                      });
+                    }}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">-- اختر المانجا --</option>
+                    {mangaList.map((manga) => (
+                      <option key={manga.id} value={manga.id}>
+                        {manga.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {editManga.mangaId && (
+                  <>
+                    <div>
+                      <label className="block text-gray-300 mb-2 font-semibold">اسم المانجا</label>
+                      <input
+                        type="text"
+                        value={editManga.name}
+                        onChange={(e) => setEditManga({ ...editManga, name: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                        placeholder="أدخل اسم المانجا"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-300 mb-2 font-semibold">الوصف</label>
+                      <textarea
+                        value={editManga.description}
+                        onChange={(e) => setEditManga({ ...editManga, description: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 min-h-32"
+                        placeholder="أدخل وصف المانجا"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-300 mb-2 font-semibold">تغيير الغلاف (اختياري)</label>
+                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 transition cursor-pointer bg-gray-700">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'edit-cover')}
+                          className="hidden"
+                          id="edit-cover-upload"
+                        />
+                        <label htmlFor="edit-cover-upload" className="cursor-pointer">
+                          <Upload className="mx-auto mb-2 text-gray-400" size={40} />
+                          <p className="text-gray-300">
+                            {editManga.cover ? editManga.cover.name : 'اضغط لرفع صورة غلاف جديدة'}
+                          </p>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-300 mb-2 font-semibold">التصنيفات</label>
+                      <input
+                        type="text"
+                        value={editManga.categories}
+                        onChange={(e) => setEditManga({ ...editManga, categories: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                        placeholder="مثال: أكشن, مغامرة, كوميدي (افصل بفاصلة)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-300 mb-2 font-semibold">الحالة</label>
+                      <select
+                        value={editManga.status}
+                        onChange={(e) => setEditManga({ ...editManga, status: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                      >
+                        <option value="مستمرة">مستمرة</option>
+                        <option value="مكتملة">مكتملة</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={handleEditMangaSubmit}
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition duration-200"
+                    >
+                      <Edit className="inline-block ml-2" size={20} />
+                      حفظ التعديلات
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
